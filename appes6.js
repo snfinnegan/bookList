@@ -7,8 +7,50 @@
         }
     }
 
+    //Local storage class
+    class Store {
+        static getBooks(){
+            let books;
+            if (localStorage.getItem('books') === null){
+                books = [];
+            } else {
+                books = JSON.parse(localStorage.getItem('books'));
+            }
+            return books
+        }        
+
+        static displayBooks(){
+            const books = Store.getBooks();
+            const ui = new UI;
+
+            books.forEach(function(book){
+                ui.addBookToList(book);
+            });
+
+        }   
+        
+        static addBook(book){
+            const books = Store.getBooks();
+            console.log('add book')
+            books.push(book);
+            localStorage.setItem('books', JSON.stringify(books));
+        }
+
+        static removeBook(isbn){
+            console.log(isbn);
+            const books = Store.getBooks();
+            books.forEach(function(book, index){
+                if(book.isbn === isbn){
+                    books.splice(index, 1);
+                }
+            });
+            localStorage.setItem('books',JSON.stringify(books));
+            
+        }
+    }
+
    class UI {
-       addBookToList(book){
+       addBookToList(book){        
         const list = document.getElementById('book-list');
         const row = document.createElement('tr');  
         row.innerHTML = `
@@ -49,7 +91,7 @@
        }
    }
    
-   
+   document.addEventListener("DOMContentLoaded", Store.displayBooks());
    
    //Event Listeners
    document.getElementById('book-form').addEventListener("submit",function(e){
@@ -63,6 +105,7 @@
            ui.showAlert('Please enter all fields', 'error');
        } else {
            ui.addBookToList(book);
+           Store.addBook(book);
            ui.showAlert('Book added','success')
        } 
        e.preventDefault();
@@ -71,6 +114,10 @@
    document.getElementById('book-list').addEventListener("click", function(e){
        const ui = new UI();
        ui.deleteBook(e.target);
+
+       //remove from local storage passing isbn
+       Store.removeBook(e.target.parentElement.previousElementSibling.textContent); 
+
        ui.showAlert('Book deleted', 'success');
        e.preventDefault();
    })
